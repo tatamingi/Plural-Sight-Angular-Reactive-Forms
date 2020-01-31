@@ -60,18 +60,8 @@
                    type="email"
                    placeholder="Email (required)"
                    [formControlName]="'email'"
-                   [ngClass]="{'is-invalid':  customerForm.get('emailGroup').errors ||
-                                            ((customerForm.get('emailGroup.email').touched ||
-                                              customerForm.get('emailGroup.email').dirty) &&
-                                             !customerForm.get('emailGroup.email').valid) }" />
-            <span class="invalid-feedback">
-            <span *ngIf="customerForm.get('emailGroup.email').errors?.required">
-              Please enter your email address.
-            </span>
-            <span *ngIf="customerForm.get('emailGroup.email').errors?.email">
-              Please enter a valid email address.
-            </span>
-          </span>
+                   [ngClass]="{'is-invalid':  emailMessage}" />
+            <span class="invalid-feedback">{{emailMessage}}</span>
           </div>
         </div>
 
@@ -124,8 +114,7 @@
               <input class="form-check-input"
                      type="radio"
                      value="email"
-                     formControlName="notifications"
-                     (click)="setNotification('email')">Email
+                     formControlName="notifications">Email
             </label>
           </div>
           <div class="form-check form-check-inline">
@@ -133,8 +122,7 @@
               <input class="form-check-input"
                      type="radio"
                      value="text"
-                     formControlName="notifications"
-                     (click)="setNotification('text')">Text
+                     formControlName="notifications">Text
             </label>
           </div>
         </div>

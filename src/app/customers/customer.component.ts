@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 
 import { Customer } from './customer';
 import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { debounceTime } from 'rxjs/operators';
 
 function emailMatcher(control: AbstractControl): { [key: string]: boolean } | null {
   const emailControl = control.get('email');
@@ -38,6 +39,13 @@ export class CustomerComponent implements OnInit {
 
   customer = new Customer();
 
+  emailMessage: string;
+
+  private validationMessages = {
+    required: 'Please enter your email address',
+    email: 'Please enter a valid email address'
+  };
+
   constructor(private formBuilder: FormBuilder) {
   }
 
@@ -48,12 +56,33 @@ export class CustomerComponent implements OnInit {
       emailGroup: this.formBuilder.group({
         email: ['', [Validators.required, Validators.email]],
         confirmEmail: ['', Validators.required],
-      }, { validator: emailMatcher }),
+      }, {validator: emailMatcher}),
       phone: [],
       notifications: 'email',
       rating: [null, ratingRange(1, 5)],
       sendCatalog: true
     });
+
+    this.customerForm.get('notifications').valueChanges
+      .subscribe((value) => {
+        this.setNotification(value);
+      });
+
+    const emailControl = this.customerForm.get('emailGroup.email');
+    emailControl.valueChanges
+      .pipe(debounceTime(1000))
+      .subscribe(() => {
+      this.setMessage(emailControl);
+    });
+  }
+
+  setMessage(control: AbstractControl) {
+    this.emailMessage = '';
+    if ((control.touched || control.dirty) && control.errors) {
+      this.emailMessage = Object.keys(control.errors)
+        .map((key) => this.validationMessages[key])
+        .join(' ');
+    }
   }
 
   save(): void {
@@ -69,8 +98,9 @@ export class CustomerComponent implements OnInit {
   }
 
   setNotification(radioButtonName: string): void {
+    const emailGroup = this.customerForm.get('emailGroup');
     const phoneControl = this.customerForm.get('phone');
-    const emailControl = this.customerForm.get('email');
+    const emailControl = emailGroup.get('email');
 
     if (radioButtonName === 'text') {
       phoneControl.setValidators(Validators.required);
